@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Travel Idea Generator ✈️</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <span class="badge">✈️ Powered by Gemini AI</span>
+      <h1>AI Travel Idea<br/><em>Generator</em></h1>
+      <p class="subtitle">Tell us your budget, time & vibe — we'll plan the perfect trip.</p>
+    </div>
+  </div>
+
+  <main>
+    <section class="form-section">
+      <div class="card">
+        <h2>Plan My Trip</h2>
+
+        <div class="form-group">
+          <label for="budget">💰 Budget (USD)</label>
+          <input type="number" id="budget" placeholder="e.g. 1500" min="100" value="1500"/>
+        </div>
+
+        <div class="form-group">
+          <label for="days">📅 Travel Days</label>
+          <input type="number" id="days" placeholder="e.g. 5" min="1" max="30" value="5"/>
+        </div>
+
+        <div class="form-group">
+          <label for="dest_type">🌍 Destination Type</label>
+          <select id="dest_type">
+            <option value="beach">🏖️ Beach</option>
+            <option value="city">🏙️ City</option>
+            <option value="mountains">⛰️ Mountains</option>
+          </select>
+        </div>
+
+        <button class="btn-generate" onclick="generateTrip()">
+          <span class="btn-text">Generate My Trip ✨</span>
+          <span class="btn-loading" style="display:none">Planning... ✈️</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="results-section" id="results" style="display:none">
+
+      <!-- Tab Navigation -->
+      <div class="tabs">
+        <button class="tab active" onclick="showTab('suggestion')">💡 Suggestion</button>
+        <button class="tab" onclick="showTab('itinerary')">🗓️ Itinerary</button>
+        <button class="tab" onclick="showTab('packing')">🎒 Packing</button>
+        <button class="tab" onclick="showTab('image')">🖼️ Image Idea</button>
+      </div>
+
+      <div class="tab-content" id="tab-suggestion">
+        <div class="result-card">
+          <h3>💡 Trip Suggestion</h3>
+          <div class="result-text" id="suggestion-text"></div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-itinerary" style="display:none">
+        <div class="result-card">
+          <h3>🗓️ Day-by-Day Itinerary</h3>
+          <div class="result-text" id="itinerary-text"></div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-packing" style="display:none">
+        <div class="result-card">
+          <h3>🎒 Packing Checklist</h3>
+          <div class="result-text" id="packing-text"></div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-image" style="display:none">
+        <div class="result-card image-card">
+          <h3>🖼️ Image Idea</h3>
+          <div class="image-placeholder" id="image-placeholder">
+            <span>🌄</span>
+            <p id="image-text"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Raw full output -->
+      <div class="result-card raw-card">
+        <details>
+          <summary>📄 View Full AI Response</summary>
+          <div class="result-text" id="raw-text"></div>
+        </details>
+      </div>
+
+    </section>
+
+    <div class="error-box" id="error-box" style="display:none">
+      <p>⚠️ <span id="error-msg"></span></p>
+    </div>
+  </main>
+
+  <footer>
+    <p>Built with ❤️ using Flask + Google Gemini AI</p>
+  </footer>
+
+  <script>
+    function showTab(name) {
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + name).style.display = 'block';
+      event.target.classList.add('active');
+    }
+
+    async function generateTrip() {
+      const budget = document.getElementById('budget').value;
+      const days = document.getElementById('days').value;
+      const dest_type = document.getElementById('dest_type').value;
+
+      if (!budget || !days) {
+        showError('Please fill in all fields!');
+        return;
+      }
+
+      const btn = document.querySelector('.btn-generate');
+      btn.querySelector('.btn-text').style.display = 'none';
+      btn.querySelector('.btn-loading').style.display = 'inline';
+      btn.disabled = true;
+
+      document.getElementById('results').style.display = 'none';
+      document.getElementById('error-box').style.display = 'none';
+
+      try {
+        const res = await fetch('/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ budget, days, destination_type: dest_type })
+        });
+
+        const json = await res.json();
+
+        if (json.success) {
+          const d = json.data;
+          document.getElementById('suggestion-text').innerText = d.suggestion || 'See full response below.';
+          document.getElementById('itinerary-text').innerText = d.itinerary || 'See full response below.';
+          document.getElementById('packing-text').innerText = d.packing || 'See full response below.';
+          document.getElementById('image-text').innerText = d.image_idea || 'See full response below.';
+          document.getElementById('raw-text').innerText = json.raw;
+          document.getElementById('results').style.display = 'block';
+          document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        } else {
+          showError(json.error || 'Something went wrong.');
+        }
+      } catch (err) {
+        showError('Network error: ' + err.message);
+      } finally {
+        btn.querySelector('.btn-text').style.display = 'inline';
+        btn.querySelector('.btn-loading').style.display = 'none';
+        btn.disabled = false;
+      }
+    }
+
+    function showError(msg) {
+      document.getElementById('error-msg').innerText = msg;
+      document.getElementById('error-box').style.display = 'block';
+    }
+  </script>
+</body>
+</html>

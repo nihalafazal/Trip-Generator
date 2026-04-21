@@ -1,0 +1,25 @@
+destination,type,avg_budget
+Bali,beach,1200
+Maldives,beach,3000
+Phuket,beach,1000
+Cancun,beach,1500
+Santorini,beach,2500
+Goa,beach,800
+Hawaii,beach,2800
+Seychelles,beach,3500
+New York,city,2000
+Paris,city,2500
+Tokyo,city,2200
+Dubai,city,1800
+London,city,2300
+Singapore,city,1900
+Bangkok,city,900
+Barcelona,city,1700
+Swiss Alps,mountains,3000
+Rocky Mountains,mountains,1500
+Himalayas,mountains,1200
+Patagonia,mountains,2000
+Dolomites,mountains,2200
+Blue Ridge Mountains,mountains,1000
+Banff,mountains,1800
+Machu Picchu,mountains,1600
